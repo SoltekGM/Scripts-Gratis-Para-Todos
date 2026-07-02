@@ -1,0 +1,121 @@
+(async () => {
+    console.clear();
+    console.log("🛡️ Sistema Quirúrgico de Mayúsculas Estrictas Activado...");
+
+    // 1. LISTA DE PROTECCIÓN TOTAL (Debe escribirse EXACTAMENTE igual, respetando mayúsculas)
+    const NOMBRES_A_SALVAR = [
+        "NUMEROS_DEL_URL_GRUPO1",
+        "NUMEROS_DEL_URL_GRUPO1",
+        "NUMEROS_DEL_URL_GRUPO1",
+        "NUMEROS_DEL_URL_GRUPO1",
+        "NUMEROS_DEL_URL_GRUPO1"
+    ]; 
+		
+    // Si quieres agregar otro grupo, pon una coma por cada grupo. El ultimo grupo no le pongas coma: "NUMEROS_DEL_URL_GRUPO1", "NUMEROS_DEL_URL_GRUPO2"
+
+    // 2. FILTRO DE ELIMINACIÓN FORZADA (Para los otros clones de spam)
+    const PALABRAS_PROHIBIDAS = [
+        "series",
+        "recomendadas",
+        "acción",
+        "((",
+        "))"
+    ];
+
+    let menuButtons = Array.from(document.querySelectorAll('div[role="button"], button')).filter(btn => {
+        let label = (btn.getAttribute('aria-label') || '').toLowerCase();
+        let rect = btn.getBoundingClientRect();
+        return (label.includes('opcion') || label.includes('mas') || label.includes('más') || btn.innerText === '...') && rect.width > 0;
+    });
+
+    if (menuButtons.length === 0) {
+        console.log("❌ No se encontraron grupos en pantalla. Haz scroll hacia abajo.");
+        return;
+    }
+
+    let tanda = menuButtons.slice(0, 50);
+    console.log(`⚡ Procesando tanda correctora de ${tanda.length} elementos...`);
+
+    for (let i = 0; i < tanda.length; i++) {
+        try {
+            tanda[i].scrollIntoView({ block: 'center' });
+            await new Promise(resolve => setTimeout(resolve, 1000)); 
+
+            let tarjeta = tanda[i].parentElement;
+            let textoAcumulado = "";
+            for (let j = 0; j < 5; j++) {
+                if (tarjeta) {
+                    let txt = (tarjeta.innerText || "").trim();
+                    if (txt.length > textoAcumulado.length) textoAcumulado = txt;
+                    tarjeta = tarjeta.parentElement;
+                }
+            }
+
+            let lineas = textoAcumulado.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            
+            // --- NUEVO: Conservamos las mayúsculas originales del título de Facebook ---
+            let nombreDetectado = (lineas[0] || "").replace(/\s+/g, ' ').trim();
+            let textoCompletoBajo = textoAcumulado.toLowerCase();
+
+            console.log(`🔍 [ANALIZANDO] Leyendo: "${nombreDetectado}"`);
+
+            let tieneProhibida = PALABRAS_PROHIBIDAS.some(p => textoCompletoBajo.includes(p));
+            
+            // COMPARACIÓN ULTRA ESTRICTA: Debe coincidir letra por letra y mayúscula por mayúscula
+            let esSalvadoExacto = NOMBRES_A_SALVAR.some(n => {
+                let nombreLimpioOriginal = n.replace(/\s+/g, ' ').trim();
+                return nombreDetectado === nombreLimpioOriginal; 
+            });
+
+            if (tieneProhibida) {
+                console.log(`🗑️ [FORZADO] Contiene palabra de spam. Eliminando...`);
+            } else if (esSalvadoExacto) {
+                console.log(`🛡️ [SALVADO PERFECTO] Coincide con mayúsculas. Saltando.`);
+                continue; // Guarda el grupo y pasa al siguiente
+            } else {
+                console.log(`🗑️ [ELIMINANDO CLON] No coincide en mayúsculas.`);
+            }
+
+            tanda[i].click(); 
+            await new Promise(resolve => setTimeout(resolve, 1200)); 
+
+            let menuItems = Array.from(document.querySelectorAll('div[role="menuitem"], span, div'));
+            let leaveOption = menuItems.find(el => el.innerText && el.innerText.trim() === 'Abandonar grupo');
+
+            if (leaveOption) {
+                leaveOption.click(); 
+                let confirmBtn = null;
+                for (let intento = 0; intento < 6; intento++) { 
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    let dialogButtons = Array.from(document.querySelectorAll('div[role="dialog"] div[role="button"], div[role="dialog"] button, span'));
+                    confirmBtn = dialogButtons.find(btn => btn.innerText && btn.innerText.trim() === 'Abandonar grupo');
+                    if (confirmBtn) break; 
+                }
+
+                if (confirmBtn) {
+                    confirmBtn.click(); 
+                    console.log(`✅ ¡Eliminado con éxito!`);
+                    await new Promise(resolve => setTimeout(resolve, 1500)); 
+                    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+                    
+                    let cerrarEncuestaBtn = Array.from(document.querySelectorAll('div[role="dialog"] div[aria-label="Cerrar"], div[role="dialog"] div[aria-label="Close"]')).find(btn => {
+                        let lbl = (btn.getAttribute('aria-label') || '').toLowerCase();
+                        return lbl.includes('cerrar') || lbl.includes('close');
+                    });
+                    if (cerrarEncuestaBtn) cerrarEncuestaBtn.click();
+                } else {
+                    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+                }
+            } else {
+                document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 3500));
+
+        } catch (error) {
+            continue;
+        }
+    }
+
+    console.log("🏁 Limpieza quirúrgica terminada. Presiona F5 para para recargar la pagina y ver resultados.");
+})();

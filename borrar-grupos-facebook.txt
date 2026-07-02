@@ -4,11 +4,11 @@
 
     // 1. LISTA DE PROTECCIÓN TOTAL (Debe escribirse EXACTAMENTE igual, respetando mayúsculas)
     const NOMBRES_A_SALVAR = [
-        "NUMEROS_DEL_URL_GRUPO1",
-        "NUMEROS_DEL_URL_GRUPO1",
-        "NUMEROS_DEL_URL_GRUPO1",
-        "NUMEROS_DEL_URL_GRUPO1",
-        "NUMEROS_DEL_URL_GRUPO1"
+        "NOMBRE_DEL_GRUPO1",
+        "NOMBRE_DEL_GRUPO2",
+        "NOMBRE_DEL_GRUPO3",
+        "NOMBRE_DEL_GRUPO4",
+        "NOMBRE_DEL_GRUPO5"
     ]; 
 		
     // Si quieres agregar otro grupo, pon una coma por cada grupo. El ultimo grupo no le pongas coma: "NUMEROS_DEL_URL_GRUPO1", "NUMEROS_DEL_URL_GRUPO2"

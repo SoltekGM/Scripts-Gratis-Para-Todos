@@ -1,0 +1,103 @@
+(async () => {
+    console.clear();
+    console.log("🛡️ Sistema Universal Chrome/Opera con Auto-Cierre de Bloqueos...");
+    const esperar = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    // -------------------------------------------------------------------------
+    // ⚙️ TU LISTA DE CANALES PROTEGIDOS
+    // -------------------------------------------------------------------------
+    const CANALES_A_SALVAR = [
+        "NOMBRE_DEL_CANAL1",
+        "NOMBRE_DEL_CANAL2",
+        "NOMBRE_DEL_CANAL3",
+        "NOMBRE_DEL_CANAL4",
+        "NOMBRE_DEL_CANAL5"
+    ]; 
+		
+    // Si quieres agregar otro canal, pon una coma por cada canal agregado. El ultimo canal no le pongas coma ejemplo: "NOMBRE_DEL_CANAL1", "NOMBRE_DEL_CANAL2"
+    // -------------------------------------------------------------------------
+
+    const totalCanalesIniciales = Array.from(document.querySelectorAll('button')).filter(btn => {
+        let txt = (btn.innerText || '').trim();
+        return txt.includes('Suscrito') && !txt.includes('SALVADO');
+    }).length;
+
+    let limiteTanda = 50;
+    console.log("🚀 Procesando bloque rápido de hasta " + limiteTanda + " canales...");
+
+    for (let i = 0; i < limiteTanda; i++) {
+        try {
+            if (i >= totalCanalesIniciales) {
+                console.log("🛑 [FRENO AUTOMÁTICO] Se revisó el límite real de la pantalla.");
+                break;
+            }
+
+            let botonesActivos = Array.from(document.querySelectorAll('button')).filter(btn => {
+                let txt = (btn.innerText || '').trim();
+                return txt.includes('Suscrito') && !txt.includes('SALVADO') && !txt.includes('Suscribirse');
+            });
+
+            if (botonesActivos.length === 0) break;
+
+            let botonActual = botonesActivos[0];
+            
+            let contenedorCanal = botonActual.closest('ytd-channel-renderer') || 
+                                  botonActual.closest('div[id="content-section"]') || 
+                                  botonActual.parentElement?.parentElement?.parentElement;
+            
+            let nombreCanal = "";
+            if (contenedorCanal) {
+                let tituloElemento = contenedorCanal.querySelector('#text, #channel-title, h3, ytd-channel-name');
+                nombreCanal = tituloElemento ? (tituloElemento.innerText || tituloElemento.textContent || "").trim() : "";
+            }
+
+            console.log(`🔍 [ANALIZANDO] Canal: "${nombreCanal || "Desconocido"}"`);
+
+            let esProtegido = CANALES_A_SALVAR.some(c => c && nombreCanal.replace(/\s+/g, ' ').trim() === c.replace(/\s+/g, ' ').trim());
+
+            if (esProtegido && nombreCanal !== "") {
+                console.log(`🛡️ [PROTEGIDO] Saltando de forma segura: "${nombreCanal}"`);
+                botonActual.innerText = "SALVADO";
+                await esperar(400);
+                continue;
+            }
+
+            botonActual.scrollIntoView({ block: 'center' });
+            botonActual.click(); 
+            await esperar(500); 
+
+            let opciones = Array.from(document.querySelectorAll('ytd-menu-service-item-renderer, tp-yt-paper-item, span'));
+            let botonAnularOp = opciones.find(el => {
+                let t = (el.innerText || '').trim();
+                return t === 'Anular' || t.includes('Anular');
+            });
+
+            if (botonAnularOp) {
+                botonAnularOp.click(); 
+                await esperar(600); 
+
+                let dialogButtons = Array.from(document.querySelectorAll('yt-confirm-dialog-renderer button, ytd-button-renderer button, button, yt-button-shape button'));
+                let confirmacionFinal = dialogButtons.find(btn => {
+                    let textBotn = (btn.innerText || btn.textContent || '').trim();
+                    return textBotn === 'Anular suscripción' || textBotn.includes('Anular');
+                });
+
+                if (confirmacionFinal) {
+                    confirmacionFinal.click(); 
+                    console.log(`✅ Canal [${nombreCanal}] anulado.`);
+                    await esperar(800);
+                }
+            }
+            
+            // 👤❌ --- NUEVO SEGURO ANTI-TRABA ---
+            // Forzamos el cierre de cualquier cartel flotante residual para que no bloquee el siguiente canal
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            await esperar(1000); 
+
+        } catch (error) {
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            continue;
+        }
+    }
+    console.log("🏁 Tanda terminada de forma limpia. Presiona F5.");
+})();
